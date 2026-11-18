@@ -93,6 +93,15 @@ if command -v claude >/dev/null 2>&1; then
   done
 fi
 
+# 8b. Test harness (TEST_CMD for /p2p-build and /p2p-fix)
+if [ -f tests/run_tests.gd ] && [ -x tools/run-tests.sh ]; then
+  n="$(./tools/run-tests.sh --list 2>/dev/null | grep -c '\.' || true)"
+  if [ "${n:-0}" -gt 0 ]; then ok "test harness: $n tests listed (tools/run-tests.sh)"
+  else bad "tools/run-tests.sh --list found no tests"; fi
+else
+  bad "test harness missing (tests/run_tests.gd + tools/run-tests.sh) — /p2p-build will block"
+fi
+
 # 9. Art pipeline
 [ -f /Volumes/DATA/personal_project/pixel_art/apps/mcp/src/index.ts ] \
   && ok "pixel-art MCP source present" || bad "pixel-art MCP source not found"

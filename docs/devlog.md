@@ -36,3 +36,29 @@ Two deviations from the vendored skills, both recorded in `CLAUDE.md` → Overri
 
 No game design yet — visual style and mechanics are still open. Next step is `/pixelstrata`,
 which must ask for the visual style before generating anything.
+
+## 2026-11-18 — Phase 0b: GDScript test harness (unblocks /p2p-build and /p2p-fix)
+
+The p2p delivery skills turned out to be only half usable here. `/p2p-plan`, `/p2p-explore`,
+`/p2p-commit`, `/p2p-review` and `/p2p-investigate` are stack-agnostic and fine. But
+`/p2p-build`'s Foundation Gate refuses to enter the TDD loop unless `TEST_CMD` resolves from a
+project marker, and its table has no Godot/GDScript row — so the two skills that actually write
+and fix code would have reported BLOCKED on every story. `/p2p-fix` reads the same table.
+
+Fixed by giving the project a real runner rather than by loosening the gate:
+
+- `tests/run_tests.gd` — headless runner over `res://tests/test_*.gd`, driving the Godot AI
+  addon's own `McpTestRunner`. Suites are `McpTestSuite` subclasses, so **the same file runs
+  headless and through `mcp__godot-ai__test_run`** in the editor. One suite, two ways to run it.
+- `tools/run-tests.sh` — the `TEST_CMD` wrapper: `-t <pattern>`, `--suite <name>`, `--list`.
+- `tests/test_project_setup.gd` — 6 tests pinning the pixel-art rendering contract, so a silent
+  change to base resolution, stretch mode, texture filter or pixel snap fails here instead of
+  showing up as mush in a screenshot three phases later.
+
+Deliberately checked the red paths, since a test harness that can only go green is worthless:
+a failing assert exits 1 and names `<suite>.<test>`, and a filter matching 0 tests exits 1
+instead of reporting a false green — the exact trap `/p2p-build` warns about.
+
+`CLAUDE.md` → Test Command declares the commands so the skills skip auto-detection.
+`mcp__graphatlas__*`, which both skills prefer for symbol lookup and blast radius, is not
+configured; their grep fallback applies.

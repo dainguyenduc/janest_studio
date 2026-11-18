@@ -109,10 +109,41 @@ Run it with `python3 -I .claude/skills/pixelstrata/scripts/doctor.py`.
   launch → right-click → Open, once.
 - CLI: `/Applications/Pixelorama.app/Contents/MacOS/Pixelorama --headless --export ...`
 
-## 7. Delivery skills (pre-existing, user-level)
+## 7. Delivery skills (pre-existing, user-level) + the test harness they need
 
 `p2p-explore`, `p2p-plan`, `p2p-build`, `p2p-fix`, `p2p-investigate`, `p2p-review`,
-`p2p-commit`, `p2p-challenge` in `~/.claude-account3/skills/`. Untouched by this install.
+`p2p-commit`, `p2p-challenge` in `~/.claude-account3/skills/`. The skills themselves are
+untouched by this install; two of them needed something from the project.
+
+`/p2p-build` has a **Foundation Gate** that refuses the TDD loop unless `TEST_CMD` resolves from
+a project marker and the runner can list tests — and its marker table covers vitest, jest,
+pytest, cargo, go, gradle, dotnet, swift and rspec, but **not Godot/GDScript**. `/p2p-fix` reads
+the same table. Without a runner, both report BLOCKED. So this project ships one:
+
+| File | Role |
+|---|---|
+| `tests/run_tests.gd` | headless CLI runner: discovers `res://tests/test_*.gd`, drives them through the addon's `McpTestRunner`, prints per-test lines, exits 0/1 |
+| `tools/run-tests.sh` | the `TEST_CMD` wrapper (`-t <pattern>`, `--suite <name>`, `--list`) |
+| `tests/test_project_setup.gd` | 6 real tests guarding the pixel-art rendering contract (base resolution, viewport stretch, nearest filter, pixel snap, main scene loads, godot-ai plugin enabled) |
+
+Suites are plain `McpTestSuite` subclasses — **the same format `mcp__godot-ai__test_run`
+discovers** — so one suite file runs both headless from the terminal and in the live editor.
+Discovery is top level of `tests/` only; test methods must be synchronous.
+
+Harness verified against all four paths, not just the happy one:
+
+| Case | Result |
+|---|---|
+| all green | 6 passed, exit 0 |
+| one failing assert | exit 1, failing `<suite>.<test>` named |
+| `-t` matching nothing | exit 1 (`Filter matched 0 tests — not a pass`) |
+| `--list -t` matching nothing | exit 1 |
+
+The commands are declared in `CLAUDE.md` → **Test Command** so the p2p skills use them instead of
+auto-detecting. Also note `mcp__graphatlas__*` (the code-graph server `/p2p-build` and `/p2p-fix`
+prefer for symbol lookup and blast radius) is **not configured**; their grep + `git log` fallback
+applies, and for scene structure `scene_get_hierarchy` / `node_get_properties` beat grepping
+`.tscn` text.
 
 ## Claude Code config
 

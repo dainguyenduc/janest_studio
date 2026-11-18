@@ -48,11 +48,35 @@ Stack inventory and version pins: `docs/STACK.md`.
   or `godot -e --path .`
 - **Run the game (agent):** `mcp__godot-ai__project_run` → `mcp__godot-ai__logs_read`
 - **Run the game (CLI):** `godot --path . ` · headless: `godot --headless --path .`
-- **Tests:** `mcp__godot-ai__test_run`, or headless per the `godot-gdscript-headless-testing` skill
+- **Tests:** `tools/run-tests.sh` (headless, no editor) or `mcp__godot-ai__test_run` (live editor)
 - **Reimport assets:** `godot --headless --import --path .`
 - **Stack self-check:** `tools/verify-stack.sh`
 - **MCP chain check:** `python3 -I tools/smoke-mcp.py` (editor must be running)
 - **Pixelorama CLI:** `/Applications/Pixelorama.app/Contents/MacOS/Pixelorama --headless ...`
+
+## Test Command (for `/p2p-build`, `/p2p-fix` and anything else that needs `TEST_CMD`)
+
+The p2p skills auto-detect `TEST_CMD` from project markers and their table has **no Godot /
+GDScript row** — without this section their Foundation Gate reports BLOCKED. This project's
+marker is `project.godot` + `tests/run_tests.gd`. Use these commands and skip the auto-detect:
+
+| | Command |
+|---|---|
+| `TEST_CMD` (run all) | `tools/run-tests.sh` |
+| Run filtered | `tools/run-tests.sh -t "<pattern>"` (matches the `test_*` method name) |
+| Run one suite | `tools/run-tests.sh --suite <suite_name>` |
+| **Filter verification** (mandatory before trusting a filtered run) | `tools/run-tests.sh --list -t "<pattern>"` — prints `<suite>.<test>` per match and **exits 1 on 0 matches** |
+| `E2E_CMD` | none. A gameplay flow is verified in-engine instead: `mcp__godot-ai__project_run` → `logs_read` → `editor_screenshot`. Report that as the E2E evidence; don't downgrade it to a mocked unit test |
+
+Harness properties, verified: green → exit 0; one failing assert → exit 1 with the failing
+`<suite>.<test>` named; a filter matching nothing → exit 1 (never a false green).
+
+**Writing a test:** `tests/test_<thing>.gd`, `@tool extends McpTestSuite`, a `suite_name()`, and
+`test_*` methods using `assert_eq` / `assert_true` / `assert_ne` / `assert_gt` /
+`assert_contains` / `assert_has_key` / `skip()` / `track()` (frees nodes after the test). Top
+level of `tests/` only — subdirectories are not scanned. Test methods must be synchronous: the
+runner does not await coroutines. The same file runs headless **and** through
+`mcp__godot-ai__test_run` in the editor, so write each suite once.
 
 ## Overrides (read before following a vendored skill verbatim)
 
@@ -88,7 +112,18 @@ file in `assets.json` exactly as the skill's manifest reference requires. Keep t
 rule: nothing is generated outside `assets.json`. If the user later adds a PixelLab key, the
 skill's own path applies again.
 
-**3. `pixelstrata` doctor is patched.** `.claude/skills/pixelstrata/scripts/doctor.py` honours
+**3. p2p skills: two gaps, both handled.** `/p2p-plan`, `/p2p-explore`, `/p2p-commit`,
+`/p2p-review`, `/p2p-investigate` are stack-agnostic and work here as-is. The other two need
+this project's answers:
+
+- `/p2p-build` and `/p2p-fix` resolve `TEST_CMD` from a marker table with no Godot row — use the
+  **Test Command** section above instead of auto-detecting, or the Foundation Gate blocks.
+- Both lean on a `mcp__graphatlas__*` code-graph server (`ga_symbols`, `ga_callers`,
+  `ga_impact`, …) which is **not configured**. Their documented fallback applies: grep +
+  `git log` + reading files. For scene/node structure prefer
+  `mcp__godot-ai__scene_get_hierarchy` and `node_get_properties` over grepping `.tscn` text.
+
+**4. `pixelstrata` doctor is patched.** `.claude/skills/pixelstrata/scripts/doctor.py` honours
 `CLAUDE_CONFIG_DIR` (upstream hardcodes `~/.claude`; this machine uses `~/.claude-account3`).
 Original kept as `doctor.py.orig`. Its `installed twice` warnings are false positives — it
 scans every `SKILL.md` on disk, including the marketplace clone; only `router` + 16 `godot-*`
