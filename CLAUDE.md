@@ -29,6 +29,15 @@ Stack inventory and version pins: `docs/STACK.md`.
 - Engine-in-the-loop: **Godot AI MCP** (`mcp__godot-ai__*`), not Coding-Solo godot-mcp
   (see Overrides).
 
+## Skills are pinned in this repo
+
+Every skill the pipeline depends on lives in `.claude/skills/` and the repo copy is what runs —
+the `p2p-*` set and `pixel-art-game-style` snapshotted from `~/.claude-account3/skills/`, plus
+the three vendored from PixelStrata. Editing the user-level copies does **not** change this
+project. Inventory + hashes: `docs/SKILLS-PINNED.md`. Drift check: `tools/skills-diff.sh`
+(`--pull <skill>` to adopt a user-level change deliberately). When a pipeline skill needs a
+change for this project, edit the repo copy and commit it.
+
 ## Pipeline (who does what)
 
 | Stage | Use |
@@ -118,10 +127,13 @@ this project's answers:
 
 - `/p2p-build` and `/p2p-fix` resolve `TEST_CMD` from a marker table with no Godot row — use the
   **Test Command** section above instead of auto-detecting, or the Foundation Gate blocks.
-- Both lean on a `mcp__graphatlas__*` code-graph server (`ga_symbols`, `ga_callers`,
-  `ga_impact`, …) which is **not configured**. Their documented fallback applies: grep +
-  `git log` + reading files. For scene/node structure prefer
-  `mcp__godot-ai__scene_get_hierarchy` and `node_get_properties` over grepping `.tscn` text.
+- Both probe for a `mcp__graphatlas__*` code-graph server (10 `ga_*` tools). **That server does
+  not exist** — not on npm, not on PyPI, not on GitHub, not configured anywhere. Don't try to
+  install it and don't wait on it: the skills' own Phase 0a probe fails `ga_architecture` → GA
+  unavailable → grep + `git log` fallback, which is the supported path. For scene/node structure
+  use `mcp__godot-ai__scene_get_hierarchy` and `node_get_properties` rather than grepping
+  `.tscn` text — that is this project's substitute for a code graph. Details and the rejected
+  alternatives: `docs/SKILLS-PINNED.md`.
 
 **4. `pixelstrata` doctor is patched.** `.claude/skills/pixelstrata/scripts/doctor.py` honours
 `CLAUDE_CONFIG_DIR` (upstream hardcodes `~/.claude`; this machine uses `~/.claude-account3`).

@@ -79,10 +79,18 @@ except Exception as e:
     print(f"[!!] .claude/settings.json: {e}")
 PY
 
-# 7. Project skills
-for s in pixelstrata pixelorama godot-mcp; do
-  [ -f ".claude/skills/$s/SKILL.md" ] && ok "skill $s" || bad "skill $s missing"
+# 7. Project skills (pinned in-repo; see docs/SKILLS-PINNED.md)
+for s in pixelstrata pixelorama godot-mcp \
+         p2p-explore p2p-plan p2p-build p2p-fix p2p-investigate p2p-review p2p-commit \
+         p2p-challenge pixel-art-game-style; do
+  [ -f ".claude/skills/$s/SKILL.md" ] || bad "pinned skill $s missing"
 done
+ok "pinned skills: $(find .claude/skills -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')"
+if [ -x tools/skills-diff.sh ]; then
+  d="$(./tools/skills-diff.sh 2>/dev/null | grep -c '^\[!!\]' || true)"
+  [ "${d:-0}" -eq 0 ] && ok "no skill drift vs user-level" \
+    || note "$d pinned skill(s) drifted from user-level (tools/skills-diff.sh)"
+fi
 
 # 8. gamedev plugins
 if command -v claude >/dev/null 2>&1; then

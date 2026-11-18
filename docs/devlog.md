@@ -62,3 +62,27 @@ instead of reporting a false green — the exact trap `/p2p-build` warns about.
 `CLAUDE.md` → Test Command declares the commands so the skills skip auto-detection.
 `mcp__graphatlas__*`, which both skills prefer for symbol lookup and blast radius, is not
 configured; their grep fallback applies.
+
+## 2026-11-18 — Phase 0c: skills pinned in-repo; graphatlas does not exist
+
+**Skills pinned.** The 8 `p2p-*` skills and `pixel-art-game-style` are copied from
+`~/.claude-account3/skills/` into `.claude/skills/`, joining the three vendored from PixelStrata
+— 12 pinned skills, 516K. The repo copy is what runs, so editing the user-level skills no longer
+changes this project's pipeline. The source dir is not a git repo and the skills carry no version
+field, so they are pinned by content hash in `docs/SKILLS-PINNED.md`.
+`tools/skills-diff.sh` reports drift against user-level and `--pull <skill>` adopts a change
+deliberately; nothing syncs on its own. Verified in all three modes, including the drift path
+(temporarily edited a pinned copy → reported DRIFTED → restored → clean).
+
+**graphatlas: nothing to install.** `p2p-build`, `p2p-fix` and `p2p-explore` probe for
+`mcp__graphatlas__*` and reference 10 `ga_*` tools (architecture, symbols, callers, callees,
+impact, importers, hubs, risk, file_summary, reindex). Checked: not on npm, not on PyPI, no such
+GitHub project, and not configured in either Claude config dir. It is an interface the skills
+were written against, not a shipped server. No action needed — their Phase 0a probe already
+degrades to grep + `git log`, which is the documented fallback.
+
+Substituting a real code-graph MCP server was considered and rejected: CodeGraph,
+code-graph-mcp, grapha and codegraph-mcp were all checked and **none supports GDScript**, so the
+index would be blind to this project's code. `scene_get_hierarchy` / `node_get_properties` from
+Godot AI serve the same purpose for scene structure and are already in CLAUDE.md. Worth
+revisiting only if a GDScript-aware code graph appears or this project grows a C# surface.
