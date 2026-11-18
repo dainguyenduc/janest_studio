@@ -1,0 +1,27 @@
+# Godot 4
+.godot/
+/android/
+*.translation
+
+# Exports
+/build/
+/export/
+*.dmg
+*.app/
+*.exe
+*.pck
+*.zip
+
+# Engine-in-the-loop artifacts
+/captures/
+/logs/
+
+# macOS / editors
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.local

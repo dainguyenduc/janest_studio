@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot MCP"
+  short_description: "Run and edit Godot projects through godot-mcp"
+  default_prompt: "Use $godot-mcp to run the project and read its errors."

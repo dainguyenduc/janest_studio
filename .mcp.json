@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "godot-ai": {
+      "type": "stdio",
+      "command": "/opt/homebrew/bin/uvx",
+      "args": [
+        "--isolated",
+        "--no-config",
+        "--no-env-file",
+        "--no-sources",
+        "--no-build",
+        "--index-strategy",
+        "first-index",
+        "--keyring-provider",
+        "disabled",
+        "--index",
+        "https://pypi.org/simple",
+        "--default-index",
+        "https://pypi.org/simple",
+        "--find-links",
+        "https://pypi.org/simple/godot-ai/",
+        "--link-mode",
+        "copy",
+        "--from",
+        "godot-ai==4.4.2",
+        "godot-ai",
+        "attach",
+        "--port",
+        "8000",
+        "--ws-port",
+        "9500"
+      ],
+      "env": {
+        "PATH": "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      }
+    },
+    "pixel-art": {
+      "type": "stdio",
+      "command": "/Users/toptop/.nvm/versions/node/v22.23.5/bin/npx",
+      "args": [
+        "tsx",
+        "/Volumes/DATA/personal_project/pixel_art/apps/mcp/src/index.ts"
+      ],
+      "env": {
+        "PATH": "/Users/toptop/.nvm/versions/node/v22.23.5/bin:/opt/homebrew/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pixelorama"
+  short_description: "Edit, animate and export pixel art in Pixelorama"
+  default_prompt: "Use $pixelorama to clean up and export these sprites."

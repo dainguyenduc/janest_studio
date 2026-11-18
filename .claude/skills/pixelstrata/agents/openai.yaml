@@ -1,0 +1,4 @@
+interface:
+  display_name: "PixelStrata"
+  short_description: "Plan and build games with code, pixel art, audio"
+  default_prompt: "Use $pixelstrata to plan this game: ask the visual style first."
